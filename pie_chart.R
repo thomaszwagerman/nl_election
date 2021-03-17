@@ -41,6 +41,8 @@ nijmegen <- nijmegen[order(nijmegen$percentage,decreasing = T),]
 nijmegen <- left_join(nijmegen,colourscheme)
 
 nijmegen$party <- factor(nijmegen$party, levels = rev(nijmegen$party))
+nijmegen <- nijmegen %>% 
+  filter(percentage >0.1)
 
 ggplot(nijmegen) +
   geom_bar(aes(x = "", y = percentage, fill = party),
@@ -49,7 +51,6 @@ ggplot(nijmegen) +
   coord_polar("y", start = 0) +
   labs(x = NULL, y = NULL, fill = NULL, 
        title = "Verkiezingsuitslag Nijmegen") +
-  guides(fill = guide_legend(reverse = T))+
   theme_classic()+
   scale_fill_manual(values = nijmegen$colour, 
                     limits = nijmegen$party)+ 

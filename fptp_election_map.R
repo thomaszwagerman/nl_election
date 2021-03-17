@@ -68,16 +68,8 @@ shp_fptp <- left_join(shp_gemeentes, df_long, by = c("Code"="code")) %>%
   select(-FID,Code,-Gemeentena,-Gemeenteco)
 shp_fptp <- left_join(shp_fptp,colourscheme)
 shp_fptp <- shp_fptp %>% 
-  filter(!is.na(party))
+  filter(percentage <0.1)
 
-#0A2CCA VVD
-#2CC84D CDA
-#DF111A PVDA
-#39A935 (GROEN) #DD0031 (ROOD) GROENLINKS
-#7d32a8 50PLUS (gokje?)
-#701a1a FvD (gokje?)
-#00AF3F D66
-#ed8600 SGP (gokje), CU #00a7eb
 
 g <- ggplot() + 
   geom_sf(data = shp_fptp, aes(fill = party))+
