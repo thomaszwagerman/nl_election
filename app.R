@@ -8,6 +8,7 @@ library(ggiraph)
 source("./pie_chart.R")
 source("./pr_calculations.R")
 source("./fptp_election_map.R")
+source("./uk_fptp_dhondt_comparison.R")
 # Define UI for the app
 ui <- shinyUI(navbarPage("Verkiezingen Nederland: D'Hondt v FPTP", theme=shinytheme("united"), position = "fixed-top",
                          tabPanel("Verkiezingsuitlag Tweede Kamer 2017",useShinyjs(),
@@ -36,15 +37,31 @@ ui <- shinyUI(navbarPage("Verkiezingen Nederland: D'Hondt v FPTP", theme=shinyth
                                                   
                                                 ),#end of sidebarpanel
                                                 mainPanel(
-                                                plotOutput("fptp_parlement"),
-                                                girafeOutput("plot"),
-                                                plotOutput("pie")
+                                                  plotOutput("fptp_parlement"),
+                                                  girafeOutput("plot"),
+                                                  plotOutput("pie")
                                                 ),#end of mainpanel
                                                 #you then construct the page chronologically, so under the navigation bar you'll have the Validate Data tab.
                                                 
                                   )# end of absolutepanel
-                           
-                         )# end of tabpanel
+                                  
+                         ),# end of tabpanel
+                         tabPanel("Vergelijken UK General Election 2019: D'Hondt vs. FPTP",useShinyjs(),
+                                  absolutePanel(top = 50, left = 10, right = 0, bottom = 0,width = "auto", height = "auto",
+                                                #br(),
+                                                h2("Verkiezingsuitlag Tweede Kamer 2017 met FPTP systeem", align = "center"),
+                                                sidebarPanel(
+                                                  h2("D'Hondt vs FPTP"),
+                                                ),#end of sidebarpanel
+                                                mainPanel(
+                                                  plotOutput("fptp_uk"),
+                                                  plotOutput("pr_uk")
+                                                ),#end of mainpanel
+                                                #you then construct the page chronologically, so under the navigation bar you'll have the Validate Data tab.
+                                                
+                                  )# end of absolutepanel
+                                  
+                         )
 )# end of navbarpage
 )# end of UI
 
@@ -63,6 +80,14 @@ server <- shinyServer(function(input, output, session) {
   
   output$fptp_parlement <- renderPlot({
     representatives_fptp
+  })
+  
+  output$fptp_uk <- renderPlot({
+    hoc_fptp
+  })
+  
+  output$pr_uk <- renderPlot({
+    hoc_pr
   })
   
   #render piechart based on selection
