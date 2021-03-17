@@ -9,17 +9,41 @@ source("./pie_chart.R")
 source("./pr_calculations.R")
 source("./fptp_election_map.R")
 # Define UI for the app
-ui <- shinyUI(navbarPage("FPTP ", theme=shinytheme("united"), position = "fixed-top",
+ui <- shinyUI(navbarPage("Verkiezingen Nederland: D'Hondt v FPTP", theme=shinytheme("united"), position = "fixed-top",
                          tabPanel("Verkiezingsuitlag Tweede Kamer 2017",useShinyjs(),
                                   absolutePanel(top = 50, left = 10, right = 0, bottom = 0,width = "auto", height = "auto",
                                                 #br(),
                                                 h2("Verkiezingsuitlag Tweede Kamer 2017", align = "center"),
-                                                plotOutput("parlement"),
-                                                girafeOutput("plot"),
-                                                plotOutput("pie")
+                                                sidebarPanel(
+                                                  h2("Een ode aan het D'Hondt systeem"),
+                                                  tags$p(HTML("<b>Verkiezingsuitlag 2017</b> aan de hand van het D'Hondt systeem, het huidige systeem.")),
+                                                ),
+                                                mainPanel(plotOutput("parlement"),),
                                                 #you then construct the page chronologically, so under the navigation bar you'll have the Validate Data tab.
                                                 
                                   )# end of absolutepanel
+                         ),# end of tabpanel
+                         tabPanel("Alternatieve FPTP Verkiezingsuitlag Tweede Kamer 2017",useShinyjs(),
+                                  absolutePanel(top = 50, left = 10, right = 0, bottom = 0,width = "auto", height = "auto",
+                                                #br(),
+                                                h2("Verkiezingsuitlag Tweede Kamer 2017 met FPTP systeem", align = "center"),
+                                                sidebarPanel(
+                                                  h2("De potentiele hel van het FPTP systeem"),
+                                                  tags$p(HTML("<b>Verkiezingsuitlag 2017</b> aan de hand van het <b>first-past-the-post (FPTP)</b> systeem, gebruikelijk in het VK.")),
+                                                  tags$p(HTML("Hier is <b>een zetel per gemeente</b> verdeelt.")),
+                                                  tags$p(HTML("Dit is natuurlijk niet hoe het in de werkelijkheid er aan toe zou gaan.")),
+                                                  tags$p(HTML("Immers werken ze in het VK met <b>constituencies</b> die enigzins op bevolking zijn aangepast.")),
+                                                  
+                                                ),#end of sidebarpanel
+                                                mainPanel(
+                                                plotOutput("fptp_parlement"),
+                                                girafeOutput("plot"),
+                                                plotOutput("pie")
+                                                ),#end of mainpanel
+                                                #you then construct the page chronologically, so under the navigation bar you'll have the Validate Data tab.
+                                                
+                                  )# end of absolutepanel
+                           
                          )# end of tabpanel
 )# end of navbarpage
 )# end of UI
@@ -35,6 +59,10 @@ server <- shinyServer(function(input, output, session) {
   
   output$parlement <- renderPlot({
     representatives_pr
+  })
+  
+  output$fptp_parlement <- renderPlot({
+    representatives_fptp
   })
   
   #render piechart based on selection
