@@ -11,27 +11,27 @@ shp_gemeentes <- st_read(paste0(election_dir,"Gemeentegrenzen_2019-shp/Gemeenteg
 colourscheme <- read.csv(paste0(election_dir, "partycolours.csv"))
 
 #sort in long format
-df_long <- df_results %>% 
+df_pie <- df_results %>% 
   pivot_longer(cols = VVD:Vrije.Democratische.Partij..VDP., names_to = "party", values_to = "votes") %>%
   select(regio =ï..RegioNaam, code = RegioCode,party, votes) %>% 
   filter(!is.na(votes)) %>% 
   group_by(code) %>% 
   mutate(total = sum(votes)) 
 
-df_long$percentage <- (df_long$votes/df_long$total)*100
-df_long$percentage <- round(df_long$percentage,1)
+df_pie$percentage <- (df_pie$votes/df_pie$total)*100
+df_pie$percentage <- round(df_pie$percentage,1)
 # 
-df_long$party <- gsub("Partij.van.de.Arbeid..P.v.d.A..","PvdA",df_long$party)
-df_long$party <- gsub("ChristenUnie.SGP","CU en SGP",df_long$party)
-df_long$party <- gsub("Democraten.66..D66.","D66",df_long$party)
-df_long$party <- gsub("X50PLUS","Partij 50PLUS",df_long$party)
-df_long$party <- gsub("Forum.voor.Democratie","FvD",df_long$party)
-df_long$party <- as.factor(df_long$party)
+df_pie$party <- gsub("Partij.van.de.Arbeid..P.v.d.A..","PvdA",df_pie$party)
+df_pie$party <- gsub("ChristenUnie.SGP","CU en SGP",df_pie$party)
+df_pie$party <- gsub("Democraten.66..D66.","D66",df_pie$party)
+df_pie$party <- gsub("X50PLUS","Partij 50PLUS",df_pie$party)
+df_pie$party <- gsub("Forum.voor.Democratie","FvD",df_pie$party)
+df_pie$party <- as.factor(df_pie$party)
 
-df_long$party <- as.character(df_long$party)
-df_long$percentage <- as.numeric(df_long$percentage) 
+df_pie$party <- as.character(df_pie$party)
+df_pie$percentage <- as.numeric(df_pie$percentage) 
 
-nijmegen <- df_long %>% 
+nijmegen <- df_pie %>% 
   filter(regio == "Nijmegen") %>%
   dplyr::ungroup() %>% 
   select(party,percentage) %>% 
@@ -58,5 +58,3 @@ ggplot(nijmegen) +
         axis.text = element_blank(),
         axis.ticks = element_blank(),
         plot.title = element_text(hjust = 0.5, color = "black"))
-
-

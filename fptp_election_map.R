@@ -10,9 +10,6 @@ df_results <- read.csv(paste0(election_dir, "Uitslag_alle_gemeenten_TK20170315.c
 shp_gemeentes <- st_read(paste0(election_dir,"Gemeentegrenzen_2019-shp/Gemeentegrenzen__voorlopig____kustlijn.shp"))
 colourscheme <- read.csv(paste0(election_dir, "partycolours.csv"))
 
-shp_gemeentes[!shp_gemeentes$Code %in% df_long$code,]
-df_long[!df_long$code %in% shp_gemeentes$Code,]
-
 #sort in long format
 df_long <- df_results %>% 
   pivot_longer(cols = VVD:Vrije.Democratische.Partij..VDP., names_to = "party", values_to = "votes") %>%
@@ -33,12 +30,9 @@ df_long$party <- gsub("Democraten.66..D66.","D66",df_long$party)
 df_long$party <- gsub("X50PLUS","Partij 50PLUS",df_long$party)
 df_long$party <- gsub("Forum.voor.Democratie","FvD",df_long$party)
 df_long$party <- as.factor(df_long$party)
-
 df_long$regio <- gsub("'","",df_long$regio)
 df_long$regio <- gsub("-"," ",df_long$regio)
-
 df_long <- left_join(df_long,colourscheme)
-
 
 fptp_results <- table(df_long$party) %>% as.data.frame()
 colnames(fptp_results) <- c("party","seats")
@@ -53,7 +47,7 @@ representatives <- ggplot(nl_house, aes(x, y, colour = party)) +
   #highlight the party in control of the House with a black line
   #geom_highlight_government(government == 1) +
   #draw majority threshold
-  draw_majoritythreshold(n = 196, label = TRUE, type = 'semicircle')+
+  draw_majoritythreshold(n = 197, label = F, type = 'semicircle')+
   #set theme_ggparliament
   theme_ggparliament() +
   #other aesthetics
@@ -66,13 +60,12 @@ representatives <- ggplot(nl_house, aes(x, y, colour = party)) +
 #link to spatial
 shp_fptp <- left_join(shp_gemeentes, df_long, by = c("Code"="code")) %>% 
   select(-FID,Code,-Gemeentena,-Gemeenteco)
-shp_fptp <- left_join(shp_fptp,colourscheme)
 shp_fptp <- shp_fptp %>% 
-  filter(percentage <0.1)
+  filter(percentage >0.1)
 
 
 g <- ggplot() + 
-  geom_sf(data = shp_fptp, aes(fill = party))+
+  geom_sf_interactive(data = shp_fptp, aes(data_id = regio, tooltip = regio, fill = party))+
   theme(panel.background = element_rect(fill = "white"),
         axis.line.x=element_blank(),
         axis.line.y=element_blank(),
