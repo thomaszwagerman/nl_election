@@ -42,7 +42,7 @@ nl_house <- parliament_data(election_data = fptp_results,
                             parl_rows = 7,
                             party_seats = fptp_results$seats)
 sum(fptp_results$seats)/2
-representatives <- ggplot(nl_house, aes(x, y, colour = party)) +
+representatives_fptp <- ggplot(nl_house, aes(x, y, colour = party)) +
   geom_parliament_seats() + 
   #highlight the party in control of the House with a black line
   #geom_highlight_government(government == 1) +

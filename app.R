@@ -14,40 +14,37 @@ ui <- shinyUI(navbarPage("FPTP ", theme=shinytheme("united"), position = "fixed-
                                                 #br(),
                                                 h2("Verkiezingsuitlag Tweede Kamer 2017", align = "center"),
                                                 girafeOutput("plot"),
-                                                plotOutput("pie"),
+                                                plotOutput("pie")
                                                 #you then construct the page chronologically, so under the navigation bar you'll have the Validate Data tab.
-                                                sidebarPanel(
-                                                  #within the Validate data tab there is a mainPanel (this just means in the centre of the page).
-                                                  # you can also have a leftPanel if  you want everything on the left hand side.
-                                                  fluidRow(
-                                                    #fluidRow is just ui generic text in this case.
-                                                    #as the first row, it will be at the top of the main panel
-                                                    helpText("F")
-                                                  ),
-                                                  
-                                                )),
-                         ))) 
+                                                
+                                  )# end of absolutepanel
+                         )# end of tabpanel
+)# end of navbarpage
+)# end of UI
 
 
 server <- shinyServer(function(input, output, session) {
   
+  #render gemeente map
   output$plot <- renderGirafe({
     girafe(ggobj = g,
            options = list(opts_selection(type = "single")))
   })
   
+  #render piechart based on selection
   observeEvent(input$plot_selected, {
+    #prepare data for plotting based on gemeente selection
     xx <- df_pie %>% 
       filter(regio == input$plot_selected) %>%
       dplyr::ungroup() %>% 
       select(party,percentage) %>% 
       as.data.frame()
-    
     xx <- xx[order(xx$percentage,decreasing = T),]
     xx <- left_join(xx,colourscheme)
     xx <- xx %>% 
       filter(percentage >0.1)
     
+    #render plot based on gemeente selection
     output$pie <-  renderPlot({
       piechart <- ggplot(xx) +
         geom_bar(aes(x = "", y = percentage, fill = party),
@@ -55,7 +52,7 @@ server <- shinyServer(function(input, output, session) {
         #geom_text(aes(x = "", y = pct, label = percent(pct)), position = position_stack(vjust = 0.5))+
         coord_polar("y", start = 0) +
         labs(x = NULL, y = NULL, fill = NULL, 
-             title = "Verkiezingsuitslag") +
+             title = paste("Verkiezingsuitslag",input$plot_selected)) +
         theme_classic()+
         scale_fill_manual(values = xx$colour, 
                           limits = xx$party)+ 
@@ -64,12 +61,9 @@ server <- shinyServer(function(input, output, session) {
               axis.ticks = element_blank(),
               plot.title = element_text(hjust = 0.5, color = "black"))
       piechart
-    }) 
-    
-    
-  })
-  
-})
+    }) # end of render plot 
+  }) # end of observeevent
+})# end of server
 
 # Run the application 
 shinyApp(ui = ui, server = server)
