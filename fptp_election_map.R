@@ -5,6 +5,7 @@ library(ggplot2)
 library(ggiraph)
 library(widgetframe)
 library(plotly)
+library(ggpol)
 election_dir <- "C:/Users/thowag/Desktop/nl_election/"
 df_results <- read.csv(paste0(election_dir, "Uitslag_alle_gemeenten_TK20170315.csv"), sep=";")
 shp_gemeentes <- st_read(paste0(election_dir,"Gemeentegrenzen_2019-shp/Gemeentegrenzen__voorlopig____kustlijn.shp"))
@@ -37,25 +38,14 @@ df_long <- left_join(df_long,colourscheme)
 fptp_results <- table(df_long$party) %>% as.data.frame()
 colnames(fptp_results) <- c("party","seats")
 fptp_results <- left_join(fptp_results,colourscheme)
-nl_house <- parliament_data(election_data = fptp_results,
-                            type = "semicircle",
-                            parl_rows = 7,
-                            party_seats = fptp_results$seats)
-sum(fptp_results$seats)/2
-representatives_fptp <- ggplot(nl_house, aes(x, y, colour = party)) +
-  geom_parliament_seats() + 
+
+representatives_fptp <- ggplot(fptp_results) +
+  ggpol::geom_parliament(aes(seats = seats, fill = party),color="black") + 
   #highlight the party in control of the House with a black line
-  #geom_highlight_government(government == 1) +
-  #draw majority threshold
-  draw_majoritythreshold(n = 197, label = F, type = 'semicircle')+
-  #set theme_ggparliament
-  theme_ggparliament() +
-  #other aesthetics
-  labs(colour = NULL, 
-       title = "Nederland FPTP",
-       subtitle = "Party that controls the House highlighted.") +
-  scale_colour_manual(values = nl_house$colour, 
-                      limits = nl_house$party)
+  scale_fill_manual(values = fptp_results$colour, 
+                    labels = fptp_results$party)+
+  coord_fixed()+
+  theme_void()
 
 #link to spatial
 shp_fptp <- left_join(shp_gemeentes, df_long, by = c("Code"="code")) %>% 

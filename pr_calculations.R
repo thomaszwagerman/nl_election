@@ -3,8 +3,7 @@ library(tidyr)
 library(sf)
 library(ggplot2)
 library(ggiraph)
-library(widgetframe)
-library(plotly)
+library(ggpol)
 election_dir <- "C:/Users/thowag/Desktop/nl_election/"
 df_results <- read.csv(paste0(election_dir, "Uitslag_alle_gemeenten_TK20170315.csv"), sep=";")
 shp_gemeentes <- st_read(paste0(election_dir,"Gemeentegrenzen_2019-shp/Gemeentegrenzen__voorlopig____kustlijn.shp"))
@@ -61,23 +60,11 @@ df_pr <- df_pr %>%
 df_pr <- df_pr[order(df_pr$seats,decreasing =T),] 
 
 df_pr <- left_join(df_pr,colourscheme)
-nl_house <- parliament_data(election_data = df_pr,
-                            type = "semicircle",
-                            parl_rows = 7,
-                            party_seats = df_pr$seats)
-sum(fptp_results$seats)/2
 
-representatives_pr <- ggplot(nl_house, aes(x, y, colour = party)) +
-  geom_parliament_seats() + 
+representatives_pr <- ggplot(df_pr) +
+  ggpol::geom_parliament(aes(seats = seats, fill = party),color="black") + 
   #highlight the party in control of the House with a black line
-  #geom_highlight_government(government == 1) +
-  #draw majority threshold
-  draw_majoritythreshold(n = 75, label = F, type = 'semicircle')+
-  #set theme_ggparliament
-  theme_ggparliament() +
-  #other aesthetics
-  labs(colour = NULL, 
-       title = "Nederland PR ('d Hondt)",
-       subtitle = "") +
-  scale_colour_manual(values = nl_house$colour, 
-                      limits = nl_house$party)
+  scale_fill_manual(values = df_pr$colour, 
+                      labels = df_pr$party)+
+  coord_fixed()+
+  theme_void()

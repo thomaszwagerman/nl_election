@@ -6,6 +6,7 @@ library(ggplot2)
 library(ggiraph)
 
 source("./pie_chart.R")
+source("./pr_calculations.R")
 source("./fptp_election_map.R")
 # Define UI for the app
 ui <- shinyUI(navbarPage("FPTP ", theme=shinytheme("united"), position = "fixed-top",
@@ -13,6 +14,7 @@ ui <- shinyUI(navbarPage("FPTP ", theme=shinytheme("united"), position = "fixed-
                                   absolutePanel(top = 50, left = 10, right = 0, bottom = 0,width = "auto", height = "auto",
                                                 #br(),
                                                 h2("Verkiezingsuitlag Tweede Kamer 2017", align = "center"),
+                                                plotOutput("parlement"),
                                                 girafeOutput("plot"),
                                                 plotOutput("pie")
                                                 #you then construct the page chronologically, so under the navigation bar you'll have the Validate Data tab.
@@ -29,6 +31,10 @@ server <- shinyServer(function(input, output, session) {
   output$plot <- renderGirafe({
     girafe(ggobj = g,
            options = list(opts_selection(type = "single")))
+  })
+  
+  output$parlement <- renderPlot({
+    representatives_pr
   })
   
   #render piechart based on selection
