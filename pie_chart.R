@@ -36,24 +36,51 @@ nijmegen <- df_pie %>%
   select(party,percentage) %>% 
   as.data.frame()
 
-nijmegen <- nijmegen[order(nijmegen$percentage,decreasing = T),]
-nijmegen <- left_join(nijmegen,colourscheme)
+pie_plot_list <- lapply(unique(df_pie$regio), function(i) {
+  regio_df <- df_pie %>% 
+    filter(regio == i) %>%
+    dplyr::ungroup() %>% 
+    select(party,percentage) %>%
+    filter(percentage >0.1) %>% 
+    as.data.frame()
+  regio_df <- regio_df[order(regio_df$percentage,decreasing = T),]
+  regio_df <- left_join(regio_df,colourscheme)
+  
+  ggplot(regio_df) +
+    geom_bar(aes(x = "", y = percentage, fill = party),
+             stat = "identity", colour = "black", width =1) +
+    #geom_text(aes(x = "", y = pct, label = percent(pct)), position = position_stack(vjust = 0.5))+
+    coord_polar("y", start = 0) +
+    labs(x = NULL, y = NULL, fill = NULL, 
+         title = paste("Verkiezingsuitslag",i)) +
+    theme_classic()+
+    scale_fill_manual(values = regio_df$colour, 
+                      limits = regio_df$party)+ 
+    theme(axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          plot.title = element_text(hjust = 0.5, color = "black"))
+})
 
-nijmegen$party <- factor(nijmegen$party, levels = rev(nijmegen$party))
-nijmegen <- nijmegen %>% 
-  filter(percentage >0.1)
-
-ggplot(nijmegen) +
-  geom_bar(aes(x = "", y = percentage, fill = party),
-           stat = "identity", colour = "black", width =1) +
-  #geom_text(aes(x = "", y = pct, label = percent(pct)), position = position_stack(vjust = 0.5))+
-  coord_polar("y", start = 0) +
-  labs(x = NULL, y = NULL, fill = NULL, 
-       title = "Verkiezingsuitslag Nijmegen") +
-  theme_classic()+
-  scale_fill_manual(values = nijmegen$colour, 
-                    limits = nijmegen$party)+ 
-  theme(axis.line = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        plot.title = element_text(hjust = 0.5, color = "black"))
+# 
+# nijmegen <- nijmegen[order(nijmegen$percentage,decreasing = T),]
+# nijmegen <- left_join(nijmegen,colourscheme)
+# 
+# nijmegen$party <- factor(nijmegen$party, levels = rev(nijmegen$party))
+# nijmegen <- nijmegen %>% 
+#   filter(percentage >0.1)
+# 
+# ggplot(nijmegen) +
+#   geom_bar(aes(x = "", y = percentage, fill = party),
+#            stat = "identity", colour = "black", width =1) +
+#   #geom_text(aes(x = "", y = pct, label = percent(pct)), position = position_stack(vjust = 0.5))+
+#   coord_polar("y", start = 0) +
+#   labs(x = NULL, y = NULL, fill = NULL, 
+#        title = "Verkiezingsuitslag Nijmegen") +
+#   theme_classic()+
+#   scale_fill_manual(values = nijmegen$colour, 
+#                     limits = nijmegen$party)+ 
+#   theme(axis.line = element_blank(),
+#         axis.text = element_blank(),
+#         axis.ticks = element_blank(),
+#         plot.title = element_text(hjust = 0.5, color = "black"))

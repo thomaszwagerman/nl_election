@@ -4,6 +4,8 @@ library(shinythemes)
 library(dplyr)
 library(ggplot2)
 library(ggiraph)
+library(mapview)
+library(leaflet)
 
 source("./pie_chart.R")
 source("./pr_calculations.R")
@@ -39,7 +41,7 @@ ui <- shinyUI(navbarPage("Verkiezingen Nederland: D'Hondt v FPTP", theme=shinyth
                                                 mainPanel(
                                                   plotOutput("fptp_parlement"),
                                                   girafeOutput("plot"),
-                                                  plotOutput("pie")
+                                                  plotOutput("pie"),
                                                 ),#end of mainpanel
                                                 #you then construct the page chronologically, so under the navigation bar you'll have the Validate Data tab.
                                                 
@@ -61,6 +63,14 @@ ui <- shinyUI(navbarPage("Verkiezingen Nederland: D'Hondt v FPTP", theme=shinyth
                                                 
                                   )# end of absolutepanel
                                   
+                         ),
+                         tabPanel("Test with mapviewplot",useShinyjs(),
+                                  absolutePanel(top = 50, left = 10, right = 0, bottom = 0,width = "auto", height = "auto",
+                                                mainPanel(
+                                                  leafletOutput("mapviewplot",width="80%",height="400px"),
+                                                  
+                                                ),
+                                  )
                          )
 )# end of navbarpage
 )# end of UI
@@ -88,6 +98,19 @@ server <- shinyServer(function(input, output, session) {
   
   output$pr_uk <- renderPlot({
     hoc_pr
+  })
+  
+  output$mapviewplot <- renderLeaflet({
+    
+    #shpfile order will need to be the same as the pie plot order (gemeentes have changes, so not currently the case)
+    # shp_fptp <- shp_fptp[order(shp_fptp$regio),]
+    # x <- 1:length(shp_fptp$regio)
+    # rownames(shp_fptp) <- x
+    
+    mapview(shp_fptp,
+            zcol = "party",
+            col.regions = shp_fptp$colour,
+            popup = popupGraph(pie_plot_list))
   })
   
   #render piechart based on selection
@@ -121,6 +144,8 @@ server <- shinyServer(function(input, output, session) {
               plot.title = element_text(hjust = 0.5, color = "black"))
       piechart
     }) # end of render plot 
+    
+
   }) # end of observeevent
 })# end of server
 
