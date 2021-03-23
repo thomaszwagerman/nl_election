@@ -106,11 +106,12 @@ server <- shinyServer(function(input, output, session) {
     # shp_fptp <- shp_fptp[order(shp_fptp$regio),]
     # x <- 1:length(shp_fptp$regio)
     # rownames(shp_fptp) <- x
-    
-    mapview(shp_fptp,
-            zcol = "party",
-            col.regions = shp_fptp$colour,
-            popup = popupGraph(pie_plot_list))
+    m <- mapview(shp_fptp,
+                 zcol = "party",
+                 col.regions = shp_fptp$colour,
+                 popup = popupGraph(pie_plot_list)
+    )
+    m@map
   })
   
   #render piechart based on selection
@@ -145,7 +146,7 @@ server <- shinyServer(function(input, output, session) {
       piechart
     }) # end of render plot 
     
-
+    
   }) # end of observeevent
 })# end of server
 
