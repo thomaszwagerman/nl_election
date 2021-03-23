@@ -4,10 +4,9 @@ library(sf)
 library(ggplot2)
 library(ggiraph)
 library(ggpol)
-election_dir <- "C:/Users/thowag/Desktop/nl_election/"
-df_results <- read.csv(paste0(election_dir, "Uitslag_alle_gemeenten_TK20170315.csv"), sep=";")
-shp_gemeentes <- st_read(paste0(election_dir,"Gemeentegrenzen_2019-shp/Gemeentegrenzen__voorlopig____kustlijn.shp"))
-colourscheme <- read.csv(paste0(election_dir, "partycolours.csv"))
+df_results <- read.csv("Uitslag_alle_gemeenten_TK20170315.csv", sep=";")
+shp_gemeentes <- st_read("Gemeentegrenzen_2019-shp/Gemeentegrenzen__voorlopig____kustlijn.shp")
+colourscheme <- read.csv( "partycolours.csv")
 
 #sort in long format
 df_results[is.na(df_results)] <- 0
