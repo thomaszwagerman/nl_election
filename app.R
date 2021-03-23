@@ -5,13 +5,13 @@ library(dplyr)
 library(ggplot2)
 library(ggiraph)
 library(mapview)
+library(leafpop)
 library(leaflet)
 
 source("./pie_chart.R")
 source("./pr_calculations.R")
 source("./fptp_election_map.R")
 source("./uk_fptp_dhondt_comparison.R")
-# Define UI for the app
 ui <- shinyUI(navbarPage("Verkiezingen Nederland: D'Hondt v FPTP", theme=shinytheme("united"), position = "fixed-top",
                          tabPanel("Verkiezingsuitlag Tweede Kamer 2017",useShinyjs(),
                                   absolutePanel(top = 50, left = 10, right = 0, bottom = 0,width = "auto", height = "auto",

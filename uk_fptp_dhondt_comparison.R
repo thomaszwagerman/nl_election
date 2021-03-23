@@ -4,9 +4,8 @@ library(sf)
 library(ggplot2)
 library(ggiraph)
 library(ggpol)
-election_dir <- "C:/Users/thowag/Desktop/nl_election/"
-df_results <- read.csv(paste0(election_dir, "UK/HoC-GE2019-results-by-constituency-csv.csv"))
-uk_colourscheme <- read.csv(paste0(election_dir, "UK/uk_colourscheme.csv"))
+df_results <- read.csv("UK/HoC-GE2019-results-by-constituency-csv.csv")
+uk_colourscheme <- read.csv("UK/uk_colourscheme.csv")
 
 #results if D'hondt method was used
 df_ukpr <- df_results %>% 
