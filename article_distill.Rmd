@@ -1,0 +1,237 @@
+---
+title: "What if the Netherlands used a First-past-the-Post (FPTP) election system?"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Thomas Zwagerman 
+    url: https://example.com/norajones
+    affiliation: Centre for Ecology & Hydrology
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+code_folding: true
+toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+In this short article I am exploring what the Dutch political landscape would look like if it operated under a **first-past-the-post (FPTP)** system.
+
+The election data for the Netherlands was downloaded from the [Kiesraad](https://www.verkiezingsuitslagen.nl/).
+
+# Results Tweede Kamer Verkiezing 2017
+These are the 2017 results summarised:
+
+```{r reading_files, include=FALSE}
+library(dplyr)
+library(tidyr)
+library(sf)
+library(ggplot2)
+library(ggiraph)
+library(widgetframe)
+library(knitr)
+library(plotly)
+library(ggpol)
+library(mapview)
+library(leafpop)
+library(leaflet)
+df_results <- read.csv("Uitslag_alle_gemeenten_TK20170315.csv", sep=";")
+shp_gemeentes <- st_read("Gemeentegrenzen_2019-shp/Gemeentegrenzen__voorlopig____kustlijn.shp")
+colourscheme <- read.csv("partycolours.csv")
+```
+
+```{r pr_table, echo=FALSE}
+#sort in long format
+df_results[is.na(df_results)] <- 0
+
+df_pr <- df_results %>% 
+  pivot_longer(cols = VVD:Vrije.Democratische.Partij..VDP., names_to = "party", values_to = "votes") %>%
+  select(party, votes) %>% 
+  group_by(party) %>% 
+  summarise(votes=sum(votes))
+
+df_pr$party <- gsub("Partij.van.de.Arbeid..P.v.d.A..","PvdA",df_pr$party)
+df_pr$party <- gsub("Democraten.66..D66.","D66",df_pr$party)
+df_pr$party <- gsub("X50PLUS","Partij 50PLUS",df_pr$party)
+df_pr$party <- gsub("Forum.voor.Democratie","FvD",df_pr$party)
+
+dHondt <- function(votes, parties, n_seats = 150) {
+  
+  divisor.mat           <- sum(votes) / sapply(votes, "/", seq(1, n_seats, 1))
+  colnames(divisor.mat) <- parties
+  
+  m.mat     <- tidyr::gather(as.data.frame(divisor.mat), key="name", value="value",
+                             everything())
+  m.mat     <- m.mat[rank(m.mat$value, ties.method = "random") <= n_seats, ]
+  rle.seats <- rle(as.character(m.mat$name))
+  
+  if (sum(rle.seats$length) != n_seats)
+    stop(paste("Number of seats distributed not equal to", n_seats))
+  
+  # fill up the vector with parties that got no seats
+  if (any(!(parties %in% rle.seats$values))) {
+    # add parties
+    missing_parties <- parties[!(parties %in% rle.seats$values)]
+    for (party in missing_parties) {
+      rle.seats$lengths <- c(rle.seats$lengths, 0)
+      rle.seats$values  <- c(rle.seats$values, party)
+    }
+    # sort results
+    rle.seats$lengths <- rle.seats$lengths[match(parties, rle.seats$values)]
+    rle.seats$values  <- rle.seats$values[match(parties, rle.seats$values)]
+  }
+  
+  rle.seats$length
+  
+}
+
+df_pr$seats<- dHondt(df_pr$votes,df_pr$party,150)
+df_pr <- df_pr %>% 
+  filter(seats>0) %>% 
+  as.data.frame()
+df_pr <- df_pr[order(df_pr$seats,decreasing =T),] 
+df_pr <- left_join(df_pr,colourscheme)
+
+df_pr$total <- sum(df_pr$votes)
+df_pr$percentage <- (df_pr$votes/df_pr$total)*100
+df_pr$percentage <- round(df_pr$percentage,1)
+
+resultaat <- df_pr %>% 
+  select(party,votes,seats,percentage)
+kable(resultaat)
+
+```
+
+Let's start with examining the composition of the Tweede Kamer - under a **proportional representation (D'Hondt)** system. This is what the Tweede Kamer looks like currently:
+
+```{r pr_graph, echo=FALSE}
+ggplot(df_pr) +
+  ggpol::geom_parliament(aes(seats = seats, fill = party),color="black") + 
+  #highlight the party in control of the House with a black line
+  scale_fill_manual(values = df_pr$colour, 
+                      labels = df_pr$party)+
+  coord_fixed()+
+  theme_void()
+```
+
+Now let's, have a look at what it would look like under **First-past-the-Post (FPTP)**, with one MP elected per Gemeente.
+
+```{r r_fptp, echo =FALSE}
+
+#sort in long format
+df_long <- df_results %>% 
+  pivot_longer(cols = VVD:Vrije.Democratische.Partij..VDP., names_to = "party", values_to = "votes") %>%
+  select(regio =RegioNaam, code = RegioCode,party, votes) %>% 
+  filter(!is.na(votes)) %>% 
+  group_by(code) %>% 
+  mutate(total = sum(votes)) %>% 
+  slice_max(votes)
+
+df_long$percentage <- (df_long$votes/df_long$total)*100
+df_long$percentage <- round(df_long$percentage,1)
+
+df_long$code <- gsub("G","",df_long$code)
+
+#fix the names
+df_long$party <- gsub("Partij.van.de.Arbeid..P.v.d.A..","PvdA",df_long$party)
+df_long$party <- gsub("Democraten.66..D66.","D66",df_long$party)
+df_long$party <- gsub("X50PLUS","Partij 50PLUS",df_long$party)
+df_long$party <- gsub("Forum.voor.Democratie","FvD",df_long$party)
+df_long$party <- as.factor(df_long$party)
+df_long$regio <- gsub("'","",df_long$regio)
+df_long$regio <- gsub("-"," ",df_long$regio)
+df_long <- left_join(df_long,colourscheme)
+
+
+fptp_results <- table(df_long$party) %>% as.data.frame()
+colnames(fptp_results) <- c("party","seats")
+fptp_results <- left_join(fptp_results,colourscheme)
+
+ggplot(fptp_results) +
+  ggpol::geom_parliament(aes(seats = seats, fill = party),color="black") + 
+  #highlight the party in control of the House with a black line
+  scale_fill_manual(values = fptp_results$colour, 
+                    labels = fptp_results$party)+
+  coord_fixed()+
+  theme_void()
+
+```
+
+Now, there are a couple of obvious differences:
+
+* The VVD has an absolute majority, despite only having `r resultaat$percentage[1]`% of the vote.
+* There are a lot more seats in this fictional house.
+
+But also some obvious caveats:
+
+* Each Gemeente has a different population, but here Amsterdam and Appingedam are represented equally. In the **UK**, with its FPTP system, **constituencies** are somewhat based on population. This is why London has 73 MPs, while Scotland has 59 MPs.
+
+# Election results on a map
+
+We can also show these results on a map - this in an interactive map which allows you to explore the individual election results for each Gemeente.
+
+```{r interactive_map, echo=FALSE}
+#sort in long format
+df_pie <- df_results %>% 
+  pivot_longer(cols = VVD:Vrije.Democratische.Partij..VDP., names_to = "party", values_to = "votes") %>%
+  select(regio =RegioNaam, code = RegioCode,party, votes) %>% 
+  filter(!is.na(votes)) %>% 
+  group_by(code) %>% 
+  mutate(total = sum(votes)) 
+
+df_pie$percentage <- (df_pie$votes/df_pie$total)*100
+df_pie$percentage <- round(df_pie$percentage,1)
+# 
+df_pie$party <- gsub("Partij.van.de.Arbeid..P.v.d.A..","PvdA",df_pie$party)
+df_pie$party <- gsub("ChristenUnie.SGP","CU en SGP",df_pie$party)
+df_pie$party <- gsub("Democraten.66..D66.","D66",df_pie$party)
+df_pie$party <- gsub("X50PLUS","Partij 50PLUS",df_pie$party)
+df_pie$party <- gsub("Forum.voor.Democratie","FvD",df_pie$party)
+df_pie$party <- as.factor(df_pie$party)
+
+df_pie$party <- as.character(df_pie$party)
+df_pie$percentage <- as.numeric(df_pie$percentage)
+
+pie_plot_list <- lapply(unique(df_pie$regio), function(i) {
+  regio_df <- df_pie %>% 
+    filter(regio == i) %>%
+    dplyr::ungroup() %>% 
+    select(party,percentage) %>%
+    filter(percentage >0.1) %>% 
+    as.data.frame()
+  regio_df <- regio_df[order(regio_df$percentage,decreasing = T),]
+  regio_df <- left_join(regio_df,colourscheme)
+  
+  ggplot(regio_df) +
+    geom_bar(aes(x = "", y = percentage, fill = party),
+             stat = "identity", colour = "black", width =1) +
+    #geom_text(aes(x = "", y = pct, label = percent(pct)), position = position_stack(vjust = 0.5))+
+    coord_polar("y", start = 0) +
+    labs(x = NULL, y = NULL, fill = NULL, 
+         title = paste("Verkiezingsuitslag",i)) +
+    theme_classic()+
+    scale_fill_manual(values = regio_df$colour, 
+                      limits = regio_df$party)+ 
+    theme(axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          plot.title = element_text(hjust = 0.5, color = "black"))
+})
+
+#link to spatial
+shp_fptp <- left_join(shp_gemeentes, df_long, by = c("Code"="code")) %>% 
+  select(-FID,Code,-Gemeentena,-Gemeenteco)
+shp_fptp <- shp_fptp %>% 
+  filter(percentage >0.1)
+
+mapview(shp_fptp,
+                 zcol = "party",
+                 col.regions = shp_fptp$colour,
+                 popup = popupGraph(pie_plot_list))
+
+```
+
+
+
