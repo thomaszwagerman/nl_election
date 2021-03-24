@@ -20,10 +20,14 @@ df_pie$percentage <- (df_pie$votes/df_pie$total)*100
 df_pie$percentage <- round(df_pie$percentage,1)
 # 
 df_pie$party <- gsub("Partij.van.de.Arbeid..P.v.d.A..","PvdA",df_pie$party)
-df_pie$party <- gsub("ChristenUnie.SGP","CU en SGP",df_pie$party)
 df_pie$party <- gsub("Democraten.66..D66.","D66",df_pie$party)
 df_pie$party <- gsub("X50PLUS","Partij 50PLUS",df_pie$party)
 df_pie$party <- gsub("Forum.voor.Democratie","FvD",df_pie$party)
+df_pie$party <- gsub("Forum.voor.Democratie","FvD",df_pie$party)
+df_pie$party <- gsub("SP..Socialistische.Partij.","SP",df_pie$party)
+df_pie$party <- gsub("PVV..Partij.voor.de.Vrijheid.","PVV",df_pie$party)
+df_pie$party <- gsub("Staatkundig.Gereformeerde.Partij..SGP.","SGP",df_pie$party)
+df_pie$party <- gsub("Partij.voor.de.Dieren","PvdD",df_pie$party)
 df_pie$party <- as.factor(df_pie$party)
 
 df_pie$party <- as.character(df_pie$party)

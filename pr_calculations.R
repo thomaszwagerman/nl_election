@@ -21,7 +21,11 @@ df_pr$party <- gsub("Partij.van.de.Arbeid..P.v.d.A..","PvdA",df_pr$party)
 df_pr$party <- gsub("Democraten.66..D66.","D66",df_pr$party)
 df_pr$party <- gsub("X50PLUS","Partij 50PLUS",df_pr$party)
 df_pr$party <- gsub("Forum.voor.Democratie","FvD",df_pr$party)
-
+df_pr$party <- gsub("Forum.voor.Democratie","FvD",df_pr$party)
+df_pr$party <- gsub("SP..Socialistische.Partij.","SP",df_pr$party)
+df_pr$party <- gsub("PVV..Partij.voor.de.Vrijheid.","PVV",df_pr$party)
+df_pr$party <- gsub("Staatkundig.Gereformeerde.Partij..SGP.","SGP",df_pr$party)
+df_pr$party <- gsub("Partij.voor.de.Dieren","PvdD",df_pr$party)
 dHondt <- function(votes, parties, n_seats = 150) {
   
   divisor.mat           <- sum(votes) / sapply(votes, "/", seq(1, n_seats, 1))
